@@ -1,0 +1,97 @@
+/* ============================================================
+   PALETA DO PROJETO  —  ajuste aqui e o site inteiro muda.
+
+   IFCE ....: verde institucional (identidade do Instituto Federal)
+   LEIAH ...: azul-petroleo do laboratorio (cor de acento)
+
+   >>> Se voce tiver o manual de identidade visual do LEIAH,
+       troque apenas os seis valores do bloco "MARCA" abaixo.
+   ============================================================ */
+
+:root {
+  /* ---------- MARCA ---------- */
+  --ifce-verde:        #0f7b3e;   /* verde IFCE, primaria */
+  --ifce-verde-escuro: #0a5b2d;
+  --ifce-verde-claro:  #2fa05e;
+  --leiah-azul:        #0f5f74;   /* azul-petroleo LEIAH, acento */
+  --leiah-azul-claro:  #17849f;
+  --leiah-ciano:       #35c2c9;   /* destaque/realce */
+
+  /* ---------- SUPERFICIES (tema claro) ---------- */
+  --bg:            #f4f7f5;
+  --surface:       #ffffff;
+  --surface-2:     #eef3ef;
+  --surface-3:     #e2eae4;
+  --border:        #d3ddd6;
+  --border-forte:  #b6c5bb;
+
+  /* ---------- TEXTO ---------- */
+  --texto:         #14231a;
+  --texto-suave:   #4c6053;
+  --texto-fraco:   #6d8377;
+  --texto-invertido: #ffffff;
+
+  /* ---------- SEMANTICAS ---------- */
+  --primaria:        var(--ifce-verde);
+  --primaria-hover:  var(--ifce-verde-escuro);
+  --acento:          var(--leiah-azul);
+  --acento-hover:    var(--leiah-azul-claro);
+  --sucesso:         #1a7f4b;
+  --alerta:          #a86a00;
+  --erro:            #b3261e;
+  --foco:            var(--leiah-ciano);
+
+  /* ---------- BOLHAS DO CHAT ---------- */
+  --bolha-usuario-bg:    var(--ifce-verde);
+  --bolha-usuario-texto: #ffffff;
+  --bolha-bot-bg:        var(--surface);
+  --bolha-bot-texto:     var(--texto);
+
+  /* ---------- FORMA ---------- */
+  --raio-p:  8px;
+  --raio-m:  14px;
+  --raio-g:  20px;
+  --raio-full: 999px;
+  --sombra-1: 0 1px 2px rgba(16, 40, 26, .07);
+  --sombra-2: 0 4px 14px rgba(16, 40, 26, .09);
+  --sombra-3: 0 12px 32px rgba(16, 40, 26, .14);
+
+  /* ---------- TIPOGRAFIA ---------- */
+  --fonte: "Inter", "Segoe UI", system-ui, -apple-system, sans-serif;
+  --fonte-mono: "SFMono-Regular", "JetBrains Mono", Consolas, monospace;
+
+  /* ---------- LAYOUT ---------- */
+  --sidebar-w: 264px;
+  --header-h: 62px;
+  --largura-conteudo: 820px;
+}
+
+/* ---------- TEMA ESCURO ---------- */
+:root[data-tema="escuro"] {
+  --bg:           #0e1512;
+  --surface:      #16201b;
+  --surface-2:    #1d2a23;
+  --surface-3:    #26362d;
+  --border:       #2c3d34;
+  --border-forte: #3d5346;
+
+  --texto:        #e7f0ea;
+  --texto-suave:  #a9bdb1;
+  --texto-fraco:  #7d938a;
+
+  --primaria:       #3fb573;
+  --primaria-hover: #59c98a;
+  --acento:         #2ea3bf;
+  --acento-hover:   #48bcd6;
+  --sucesso:        #46c286;
+  --alerta:         #e0a437;
+  --erro:           #f2857c;
+
+  --bolha-usuario-bg:    #1f6f47;
+  --bolha-usuario-texto: #ffffff;
+  --bolha-bot-bg:        var(--surface-2);
+
+  --sombra-1: 0 1px 2px rgba(0, 0, 0, .35);
+  --sombra-2: 0 4px 14px rgba(0, 0, 0, .4);
+  --sombra-3: 0 12px 32px rgba(0, 0, 0, .5);
+}

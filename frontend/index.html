@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR" data-tema="claro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Assistente acadêmico do IFCE Campus Maranguape: tire dúvidas sobre calendário, regimento, ementas, editais e procedimentos, com indicação das fontes consultadas.">
+  <title>Assistente Inteligente · IFCE Campus Maranguape</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%230f7b3e'/><text x='16' y='23' font-size='18' text-anchor='middle' fill='white' font-family='sans-serif'>A</text></svg>">
+  <link rel="stylesheet" href="/static/css/styles.css">
+</head>
+<body>
+  <a class="pular-para-conteudo" href="#conteudo">Pular para o conteúdo principal</a>
+
+  <div class="app" id="app">
+
+    <!-- ================= BARRA LATERAL ================= -->
+    <aside class="sidebar" aria-label="Navegação principal">
+      <div class="marca">
+        <div class="marca__simbolo" aria-hidden="true">🎓</div>
+        <div>
+          <div class="marca__nome">Assistente Inteligente</div>
+          <div class="marca__sub">IFCE Campus Maranguape</div>
+        </div>
+      </div>
+
+      <nav class="nav" aria-label="Seções">
+        <p class="nav__titulo" id="nav-titulo">Seções</p>
+        <button class="nav__item" type="button" data-vista="chat" aria-current="page">
+          <span class="nav__icone" aria-hidden="true">💬</span> Conversar
+        </button>
+        <button class="nav__item" type="button" data-vista="documentos">
+          <span class="nav__icone" aria-hidden="true">📚</span> Base de Conhecimento
+        </button>
+        <button class="nav__item" type="button" id="btn-nova-conversa">
+          <span class="nav__icone" aria-hidden="true">✨</span> Nova conversa
+        </button>
+      </nav>
+
+      <div class="sidebar__rodape">
+        <div class="status" id="status" data-estado="carregando">
+          <span class="status__ponto" aria-hidden="true"></span>
+          <span class="status__texto" id="status-texto">Verificando conexão…</span>
+        </div>
+        <p class="sidebar__creditos">
+          PIBIC AF Jr 2026 · Edital 14/2026 PRPI/IFCE<br>
+          Projeto de pesquisa · LEIAH / IFCE Maranguape
+        </p>
+      </div>
+    </aside>
+
+    <!-- ================= ÁREA PRINCIPAL ================= -->
+    <main class="principal" id="conteudo">
+      <header class="topo">
+        <div style="display:flex;align-items:center;gap:12px;min-width:0">
+          <button class="btn-icone btn-menu" id="btn-menu" type="button"
+                  aria-label="Abrir menu de navegação" aria-expanded="false">☰</button>
+          <div style="min-width:0">
+            <h1 class="topo__titulo" id="topo-titulo">Conversar</h1>
+            <p class="topo__desc" id="topo-desc">Respostas baseadas nos documentos públicos do campus</p>
+          </div>
+        </div>
+        <div class="topo__acoes">
+          <button class="btn-icone" id="btn-tema" type="button"
+                  aria-label="Alternar entre tema claro e escuro">🌙</button>
+        </div>
+      </header>
+
+      <!-- ---------- VISTA: CHAT ---------- -->
+      <section class="vista" data-vista="chat" data-ativa="true" aria-labelledby="topo-titulo">
+        <div class="chat">
+          <div class="chat__mensagens" id="mensagens" role="log"
+               aria-live="polite" aria-relevant="additions text" tabindex="0">
+            <div class="chat__interno" id="mensagens-interno">
+
+              <div class="boas-vindas" id="boas-vindas">
+                <div class="boas-vindas__icone" aria-hidden="true">🎓</div>
+                <h2>Olá! Como posso ajudar?</h2>
+                <p>
+                  Tire dúvidas sobre calendário acadêmico, regimento, ementas, normativas,
+                  editais e procedimentos do IFCE Campus Maranguape.
+                  Toda resposta indica os documentos que foram consultados.
+                </p>
+                <div class="sugestoes" id="sugestoes">
+                  <button class="sugestao" type="button" data-pergunta="Quando começa e termina o próximo semestre letivo?">
+                    <span class="sugestao__rotulo">Calendário</span>
+                    Quando começa e termina o próximo semestre letivo?
+                  </button>
+                  <button class="sugestao" type="button" data-pergunta="Qual é a frequência mínima exigida para aprovação?">
+                    <span class="sugestao__rotulo">Regimento</span>
+                    Qual é a frequência mínima exigida para aprovação?
+                  </button>
+                  <button class="sugestao" type="button" data-pergunta="Como faço para solicitar a segunda via do meu histórico escolar?">
+                    <span class="sugestao__rotulo">Secretaria</span>
+                    Como solicito a segunda via do histórico escolar?
+                  </button>
+                  <button class="sugestao" type="button" data-pergunta="Quais editais de bolsa estão abertos no campus?">
+                    <span class="sugestao__rotulo">Editais</span>
+                    Quais editais de bolsa estão abertos no campus?
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <div class="compositor">
+            <div class="compositor__interno">
+              <form id="form-chat">
+                <div class="compositor__caixa">
+                  <label class="sr-only" for="campo-pergunta">Escreva sua pergunta</label>
+                  <textarea class="compositor__campo" id="campo-pergunta" rows="1"
+                            placeholder="Escreva sua pergunta sobre o campus…"
+                            autocomplete="off" maxlength="2000"></textarea>
+                  <button class="btn-enviar" id="btn-enviar" type="submit"
+                          aria-label="Enviar pergunta" disabled>➤</button>
+                </div>
+              </form>
+              <div class="compositor__dicas">
+                <span>Enter envia · Shift+Enter quebra linha</span>
+                <label>
+                  <span class="sr-only">Filtrar a busca por categoria de documento</span>
+                  <select class="compositor__filtro" id="filtro-categoria">
+                    <option value="">Todas as categorias</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ---------- VISTA: DOCUMENTOS ---------- -->
+      <section class="vista" data-vista="documentos" aria-label="Base de conhecimento">
+        <div class="docs">
+          <div class="docs__interno">
+
+            <div class="painel-stats" id="painel-stats" aria-label="Resumo da base de conhecimento"></div>
+
+            <div class="docs__barra">
+              <div class="campo-busca">
+                <span aria-hidden="true">🔎</span>
+                <label class="sr-only" for="busca-doc">Buscar documento pelo nome</label>
+                <input type="search" id="busca-doc" placeholder="Buscar documento…">
+              </div>
+              <div class="filtros" id="filtros-categoria" role="group" aria-label="Filtrar por categoria"></div>
+              <button class="btn btn--secundario" id="btn-atualizar-docs" type="button">↻ Atualizar</button>
+            </div>
+
+            <div class="docs__grade" id="grade-docs"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- ================= GAVETA DE DETALHE DO DOCUMENTO ================= -->
+  <div class="gaveta" id="gaveta" data-aberta="false" role="dialog"
+       aria-modal="true" aria-labelledby="gaveta-titulo">
+    <button class="gaveta__fundo" id="gaveta-fundo" type="button" aria-label="Fechar detalhes"></button>
+    <div class="gaveta__painel">
+      <div class="gaveta__topo">
+        <div style="min-width:0;flex:1">
+          <h2 class="gaveta__titulo" id="gaveta-titulo">Documento</h2>
+          <p class="gaveta__sub" id="gaveta-sub"></p>
+        </div>
+        <button class="btn-icone" id="btn-fechar-gaveta" type="button" aria-label="Fechar">✕</button>
+      </div>
+      <div class="gaveta__corpo" id="gaveta-corpo"></div>
+      <div class="gaveta__acoes">
+        <a class="btn btn--secundario" id="link-abrir-doc" href="#" target="_blank" rel="noopener">
+          📄 Abrir documento original
+        </a>
+        <button class="btn" id="btn-perguntar-doc" type="button">💬 Perguntar sobre esta categoria</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toasts" id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/static/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+
+# Configuracao local
+backend/.env
+
+# Indice vetorial e logs (gerados)
+backend/data/chroma/
+backend/data/logs/
+
+# Documentos institucionais (nao versionar arquivos pesados/oficiais)
+backend/data/documentos/**
+!backend/data/documentos/**/
+!backend/data/documentos/faq/exemplo-faq-campus.md
+
+# Modelos baixados
+.cache/
+
+# Sistema
+.DS_Store
+
+# PDFs de referencia (nao versionar)
+*.pdf
