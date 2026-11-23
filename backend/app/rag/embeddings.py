@@ -25,9 +25,16 @@ def get_modelo():
     return _modelo
 
 
+def _prefixo(configurado: str, esperado: str) -> str:
+    prefixo = configurado.strip()
+    if settings.embedding_model == "intfloat/multilingual-e5-small" and prefixo != esperado:
+        raise RuntimeError(f"O multilingual-e5-small requer o prefixo {esperado!r}")
+    return prefixo
+
+
 def embed_passagens(textos: list[str]) -> list[list[float]]:
     """Vetoriza trechos da base de conhecimento."""
-    prefixo = settings.embedding_passage_prefix
+    prefixo = _prefixo(settings.embedding_passage_prefix, "passage:")
     entradas = [f"{prefixo} {t}" if prefixo else t for t in textos]
     vetores = get_modelo().encode(
         entradas, normalize_embeddings=True, batch_size=32, show_progress_bar=False
@@ -37,7 +44,7 @@ def embed_passagens(textos: list[str]) -> list[list[float]]:
 
 def embed_pergunta(texto: str) -> list[float]:
     """Vetoriza a pergunta do usuario."""
-    prefixo = settings.embedding_query_prefix
+    prefixo = _prefixo(settings.embedding_query_prefix, "query:")
     entrada = f"{prefixo} {texto}" if prefixo else texto
     vetor = get_modelo().encode([entrada], normalize_embeddings=True)[0]
     return vetor.tolist()

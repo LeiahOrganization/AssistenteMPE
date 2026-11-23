@@ -1,24 +1,22 @@
-"""Cliente do LLM gratuito servido via ngrok.
-
-O endpoint precisa ser compativel com a API OpenAI (/v1/chat/completions), o que
-cobre vLLM, llama.cpp server, LM Studio e Ollama. O modelo de referencia do
-projeto e o openai/gpt-oss-20b, mas trocar de modelo e so mudar LLM_MODEL no .env
--- o que torna direta a avaliacao comparativa prevista na Meta 2.
-"""
+"""Cliente para Gemini e outros provedores com endpoint compativel com OpenAI."""
 
 from __future__ import annotations
 
 import re
+import time
 from collections.abc import Iterator
 from functools import lru_cache
+from urllib.parse import urlsplit
 
-from openai import OpenAI
+from openai import APIConnectionError, APIStatusError, OpenAI
 
 from app.config import settings
 
 # O ngrok gratuito injeta uma pagina de aviso no primeiro acesso do navegador;
 # este cabecalho a desativa e evita respostas HTML no lugar do JSON.
 HEADERS = {"ngrok-skip-browser-warning": "true"}
+_CHAVE_PLACEHOLDER = "COLE_SUA_CHAVE_AQUI"
+_CHAVE_AUSENTE = "Preencha LLM_API_KEY no backend/.env e reinicie o backend."
 
 # Modelos da familia gpt-oss podem emitir o raciocinio antes da resposta final.
 _PADROES_RACIOCINIO = [
@@ -34,14 +32,25 @@ def limpar_resposta(texto: str) -> str:
     return texto.strip()
 
 
+def _gemini() -> bool:
+    url = urlsplit(settings.llm_base_url)
+    return url.scheme == "https" and url.hostname == "generativelanguage.googleapis.com"
+
+
+def _chave_ausente() -> bool:
+    return settings.llm_api_key.strip() in ("", _CHAVE_PLACEHOLDER)
+
+
 @lru_cache
 def get_client() -> OpenAI:
+    if _gemini() and _chave_ausente():
+        raise ValueError(_CHAVE_AUSENTE)
     return OpenAI(
         base_url=settings.llm_base_url,
-        api_key=settings.llm_api_key,
+        api_key=settings.llm_api_key.strip(),
         timeout=settings.llm_timeout,
         max_retries=1,
-        default_headers=HEADERS,
+        default_headers=None if _gemini() else HEADERS,
     )
 
 
@@ -50,7 +59,7 @@ def gerar(mensagens: list[dict[str, str]]) -> str:
     resposta = get_client().chat.completions.create(
         model=settings.llm_model,
         messages=mensagens,  # type: ignore[arg-type]
-        temperature=settings.llm_temperature,
+        **({} if _gemini() else {"temperature": settings.llm_temperature}),
         max_tokens=settings.llm_max_tokens,
     )
     return limpar_resposta(resposta.choices[0].message.content or "")
@@ -61,7 +70,7 @@ def gerar_stream(mensagens: list[dict[str, str]]) -> Iterator[str]:
     fluxo = get_client().chat.completions.create(
         model=settings.llm_model,
         messages=mensagens,  # type: ignore[arg-type]
-        temperature=settings.llm_temperature,
+        **({} if _gemini() else {"temperature": settings.llm_temperature}),
         max_tokens=settings.llm_max_tokens,
         stream=True,
     )
@@ -86,13 +95,49 @@ def gerar_stream(mensagens: list[dict[str, str]]) -> Iterator[str]:
             yield pedaco
 
 
+def explicar_falha(exc: Exception) -> str:
+    """Mensagens publicas sem incluir corpos de erro ou credenciais."""
+    if _gemini() and _chave_ausente():
+        return _CHAVE_AUSENTE
+    if isinstance(exc, APIConnectionError):
+        return "Nao foi possivel conectar ao provedor do modelo."
+    if isinstance(exc, APIStatusError):
+        orientacao = {
+            400: "Verifique a configuracao da API e do modelo.",
+            401: "Verifique a chave de API.",
+            403: "Verifique a chave e as permissoes do projeto.",
+            404: "Verifique se o modelo esta disponivel para o seu projeto.",
+            429: "Verifique a cota ou o limite de requisicoes.",
+        }.get(exc.status_code, "Verifique a disponibilidade do provedor.")
+        return f"Provedor retornou HTTP {exc.status_code}. {orientacao}"
+    return "Falha ao consultar o provedor do modelo. Confira a configuracao do backend."
+
+
+@lru_cache(maxsize=1)
+def _verificar_gemini(_janela: int) -> tuple[bool, str]:
+    # O catalogo pode listar um modelo sem que o projeto tenha acesso a geracao.
+    try:
+        get_client().with_options(timeout=8, max_retries=0).chat.completions.create(
+            model=settings.llm_model,
+            messages=[{"role": "user", "content": "Responda OK."}],
+            max_tokens=16,
+        )
+    except Exception as exc:
+        return False, explicar_falha(exc)
+    return True, "Google Gemini aceitou uma solicitacao de geracao para o modelo configurado."
+
+
 def verificar() -> tuple[bool, str]:
-    """Checa se o tunel ngrok e o modelo estao no ar (usado em /api/health)."""
+    """Checa o acesso ao modelo (usado em /api/health)."""
+    if _gemini():
+        if _chave_ausente():
+            return False, _CHAVE_AUSENTE
+        return _verificar_gemini(int(time.monotonic() // 300))
     try:
         modelos = get_client().models.list()
         disponiveis = [m.id for m in modelos.data]
-        if settings.llm_model in disponiveis or not disponiveis:
-            return True, f"conectado ({settings.llm_base_url})"
-        return True, f"conectado, mas o modelo configurado nao esta na lista: {disponiveis[:5]}"
-    except Exception as exc:  # noqa: BLE001
-        return False, f"falha ao conectar em {settings.llm_base_url}: {exc}"
+        if settings.llm_model in disponiveis:
+            return True, "O modelo configurado consta no catalogo do provedor."
+        return False, "O modelo configurado nao consta no catalogo do provedor."
+    except Exception as exc:
+        return False, explicar_falha(exc)

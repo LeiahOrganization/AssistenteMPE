@@ -80,7 +80,7 @@ async function atualizarStatus() {
       texto.innerHTML = `Modelo conectado<br><small>${escapar(saude.llm_model)}</small>`;
     } else {
       caixa.dataset.estado = "erro";
-      texto.innerHTML = "Modelo indisponível<br><small>confira o túnel ngrok</small>";
+      texto.innerHTML = "Modelo indisponível<br><small>confira a configuração do provedor</small>";
     }
     caixa.title = saude.llm_detalhe;
     if (saude.chunks === 0) mostrarAvisoBaseVazia();

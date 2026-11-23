@@ -66,7 +66,17 @@ AssistenteMPE/
 
 ## Como rodar
 
-### 1. Servir o LLM e expor pelo ngrok
+### 1. Configurar o LLM
+
+**Google Gemini (configuração do `.env.example`):** copie o exemplo para
+`backend/.env` se ele ainda não existir e substitua `COLE_SUA_CHAVE_AQUI` em
+`LLM_API_KEY` pela chave do Google AI Studio. Para projetos sem acesso ao
+`gemini-2.5-flash`, use `LLM_MODEL=gemini-3.5-flash-lite`. Reinicie o backend
+após salvar. `/api/health` faz uma geração curta de teste com o Gemini quando
+há uma chave, reutilizando o resultado por até cinco minutos. Essa consulta
+pode consumir cota. Não coloque a chave no Git nem no frontend.
+
+**Alternativa: servir o próprio LLM via ngrok.**
 
 Em uma máquina com GPU (ou no Colab), suba um servidor compatível com a API OpenAI:
 
@@ -88,15 +98,23 @@ ngrok http 8000
 
 ### 2. Backend
 
+Use Python 3.11 ou 3.12. Para o OCR de PDFs, instale os dados de idioma do
+Tesseract (`tesseract-ocr` e `tesseract-ocr-por` no Debian/Ubuntu). O PyMuPDF usa
+`por` por padrão; se necessário, exporte `OCR_LANGUAGE` e `TESSDATA_PREFIX`
+(diretório que contém os arquivos `.traineddata`) antes da ingestão.
+
 ```bash
 cd backend
 python3 -m venv .venv && source .venv/bin/activate
 pip install -r requirements.txt
 
-cp .env.example .env
+test -e .env || cp .env.example .env
 # edite o .env:
+#   LLM_API_KEY=...                                    (chave do Google AI Studio)
+# Ou, para o servidor próprio:
 #   LLM_BASE_URL=https://xxxx-xx-xx.ngrok-free.app/v1   (não esqueça o /v1)
 #   LLM_MODEL=openai/gpt-oss-20b                        (ou gpt-oss:20b no Ollama)
+#   LLM_API_KEY=nao-usada-mas-obrigatoria               (se o servidor não exigir chave)
 ```
 
 ### 3. Alimentar a base de conhecimento
@@ -116,30 +134,60 @@ Formatos aceitos: `.pdf`, `.docx`, `.html`, `.txt`, `.md`.
 
 ```bash
 python -m scripts.ingest          # indexa/atualiza
+python -m scripts.ingest --forcar # recalcula mesmo para arquivos sem mudanças
 python -m scripts.ingest --reset  # zera o índice e reindexa tudo
 ```
 
-#### Coletar páginas do portal do campus
+Prefira uma coleção nova (`COLLECTION_NAME`) para comparar modelos ou preparar um
+índice piloto. `--reset` é destrutivo; a troca atômica é **por documento**, não para
+a base inteira. Não faça coleta/ingestão simultâneas sobre o mesmo diretório nem
+escreva na mesma coleção por processos diferentes.
 
-Nem tudo está em PDF: contatos, editais recentes e notícias só existem no site.
-O coletor baixa as páginas, limpa a navegação e salva em Markdown:
+#### Coletar páginas e anexos do portal do campus
+
+O coletor salva HTML em Markdown e baixa PDFs/DOCXs vinculados nas páginas:
 
 ```bash
 python -m scripts.crawl https://portal.ifce.edu.br/campus/maranguape/ \
-    --categoria portal --max-paginas 30 --profundidade 2
+    --categoria portal --max-paginas 30 --profundidade 2 --max-requisicoes 150
 python -m scripts.ingest
 ```
 
-O coletor só segue links do mesmo domínio e sob o mesmo prefixo de caminho,
-respeita o `robots.txt` quando existe e espera 1 s entre requisições.
+O escopo padrão é o mesmo host e o prefixo de caminho da semente. Links PDF/DOCX
+explícitos, descobertos nas páginas coletadas, também podem estar fora do
+prefixo no mesmo host. O crawler verifica `robots.txt` e o escopo em cada salto,
+aplica intervalo entre requisições e limita o tamanho dos downloads (`--max-mib`).
 
-A URL de origem de cada página fica em `data/documentos/_fontes.json`, então a
-interface cita **o link vivo do portal**, não a cópia local — e o título exibido
-é o `<title>` real da página.
+`data/documentos/_fontes.json` guarda `url_origem`, `tipo`, `status`, `data_coleta`
+em UTC e `hash_arquivo` (SHA-256 do arquivo salvo, incluindo o Markdown gerado no
+caso de HTML). A recoleta não regrava conteúdo idêntico; mantém a data da cópia
+existente. Um HTTP 404/410 para fonte conhecida a marca como `archived`,
+preservando a cópia local e retirando seus chunks na próxima ingestão. Não ter
+encontrado o link numa coleta limitada **não** arquiva a fonte. Para arquivos
+manuais, inclua URL e data no manifesto quando conhecidas: o pipeline calcula o
+hash, mas não inventa proveniência. A data de coleta não é a data de publicação
+nem indica vigência.
 
-> Páginas do portal envelhecem. Recolete periodicamente (o mesmo comando
-> sobrescreve os arquivos) e registre a data de coleta no relatório: uma resposta
-> sobre edital vigente vale pela data em que a base foi atualizada.
+Revise avisos de OCR e amostras de tabelas antes de aceitar o índice. Tabelas de
+PDF são preservadas quando detectadas na camada nativa; o OCR de imagens não
+promete reconstruir a grade de uma tabela escaneada.
+
+#### Avaliar a recuperação (sem LLM)
+
+```bash
+python -m scripts.eval_retrieval
+python -m scripts.eval_retrieval --perguntas data/eval/perguntas_teste.json \
+    --saida data/eval/relatorio_retrieval.md
+python -m unittest discover -s tests -v
+```
+
+A avaliação usa a coleção e o limiar configurados. Hit@1, Hit@5 e MRR@5 são
+calculados nas perguntas com resposta, por correspondência de documento
+(caminho relativo à base) **e** categoria. A taxa de abstenção correta é a
+fração das perguntas sem resposta que não recuperam nenhum chunk após o corte.
+O limiar padrão não foi calibrado para o corpus oficial. As cinco perguntas
+incluídas só servem para um teste com o **FAQ de exemplo**; remova esse FAQ e
+rotule um novo conjunto ao avaliar documentos oficiais.
 
 ### 4. Subir a aplicação
 

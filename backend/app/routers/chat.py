@@ -38,10 +38,7 @@ def chat(req: ChatRequest) -> ChatResponse:
     except Exception as exc:  # noqa: BLE001
         raise HTTPException(
             status_code=502,
-            detail=(
-                "Nao foi possivel falar com o modelo de linguagem. Verifique se o "
-                f"tunel ngrok esta ativo em {settings.llm_base_url}. Detalhe: {exc}"
-            ),
+            detail=llm.explicar_falha(exc),
         ) from exc
 
     return ChatResponse(
@@ -76,11 +73,7 @@ def chat_stream(req: ChatRequest) -> StreamingResponse:
             for pedaco in llm.gerar_stream(mensagens):
                 yield evento("token", pedaco)
         except Exception as exc:  # noqa: BLE001
-            yield evento(
-                "error",
-                f"Falha ao contatar o modelo em {settings.llm_base_url}. "
-                f"Confira se o ngrok esta ativo. Detalhe: {exc}",
-            )
+            yield evento("error", llm.explicar_falha(exc))
             return
         yield evento("done", {"used_context": True, "model": settings.llm_model})
 

@@ -19,16 +19,23 @@ from app.rag import ingest               # noqa: E402
 def main() -> int:
     parser = argparse.ArgumentParser(description="Indexacao da base do IFCE Maranguape")
     parser.add_argument("--reset", action="store_true", help="zera o indice antes")
+    parser.add_argument("--forcar", action="store_true", help="recalcula mesmo com hash identico")
     args = parser.parse_args()
 
     print(f"Pasta de documentos: {settings.documents_path}")
     print(f"Modelo de embedding: {settings.embedding_model}")
     print(f"Chunk: {settings.chunk_size} caracteres / sobreposicao {settings.chunk_overlap}\n")
 
-    relatorio = ingest.indexar_base(reset=args.reset)
+    try:
+        relatorio = ingest.indexar_base(reset=args.reset, forcar=args.forcar)
+    except (ValueError, OSError) as exc:
+        print(f"Ingestao interrompida: {exc}", file=sys.stderr)
+        return 1
 
     print("\n" + "-" * 50)
     print(f"Documentos processados: {relatorio['documentos_processados']}")
+    print(f"Documentos inalterados: {relatorio['documentos_inalterados']}")
+    print(f"Documentos arquivados.: {relatorio['documentos_removidos']}")
     print(f"Chunks indexados......: {relatorio['chunks_indexados']}")
     print(f"Duracao...............: {relatorio['duracao_s']}s")
     if relatorio["ignorados"]:
@@ -39,7 +46,9 @@ def main() -> int:
         print(f"Erros: {len(relatorio['erros'])}")
         for item in relatorio["erros"]:
             print(f"  - {item}")
-    return 1 if relatorio["erros"] else 0
+    return int(bool(relatorio["erros"]) or not (
+        relatorio["documentos_processados"] or relatorio["documentos_inalterados"]
+    ))
 
 
 if __name__ == "__main__":
