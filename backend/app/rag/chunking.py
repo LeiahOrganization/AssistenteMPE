@@ -91,6 +91,31 @@ def _juntar_pequenos(blocos: list[str], tamanho: int, minimo: int) -> list[str]:
     return saida
 
 
+def _blocos_pagina(texto: str, tamanho: int, minimo: int):
+    if len(texto) <= tamanho:
+        yield texto, any(linha.startswith("|") for linha in texto.splitlines())
+        return
+    # Os loaders emitem tabelas com bordas '|'. Mantem as linhas e
+    # repete o cabecalho em cada trecho de uma tabela longa.
+    for parte in re.split(r"(?m)((?:^\|[^\n]*(?:\n|$))+)", texto):
+        parte = parte.strip()
+        if not parte:
+            continue
+        linhas = parte.splitlines()
+        if not parte.startswith("|") or len(linhas) < 3:
+            for bloco in _juntar_pequenos(_dividir(parte, tamanho, SEPARADORES), tamanho, minimo):
+                yield bloco, parte.startswith("|")
+            continue
+        cabecalho = "\n".join(linhas[:2])
+        atual = cabecalho
+        for linha in linhas[2:]:
+            if atual != cabecalho and len(atual) + 1 + len(linha) > tamanho:
+                yield atual, True
+                atual = cabecalho
+            atual += "\n" + linha
+        yield atual, True
+
+
 def segmentar(
     paginas: list[tuple[int | None, str]],
     tamanho: int = 900,
@@ -102,22 +127,17 @@ def segmentar(
     indice = 0
 
     for pagina, texto in paginas:
-        blocos = _dividir(texto.strip(), tamanho, SEPARADORES)
-        blocos = _juntar_pequenos(blocos, tamanho, minimo)
+        if tamanho < 1:
+            raise ValueError("Tamanho de chunk deve ser positivo")
         anterior = ""
-        for bloco in blocos:
+        for bloco, tabela in _blocos_pagina(texto.strip(), tamanho, minimo):
             bloco = bloco.strip()
             if not bloco:
                 continue
-            # sobreposicao: reaproveita o final do bloco anterior como contexto
-            cauda = _cauda(anterior, sobreposicao)
-            corpo = f"{cauda} {bloco}".strip() if cauda else bloco
-            corpo = re.sub(r"\s+", " ", corpo).strip()
-            if len(corpo) < minimo:
-                anterior = bloco
-                continue
+            cauda = "" if tabela else _cauda(anterior, sobreposicao)
+            corpo = f"{cauda}\n{bloco}".strip() if cauda else bloco
             chunks.append(Chunk(texto=corpo, indice=indice, pagina=pagina))
             indice += 1
-            anterior = bloco
+            anterior = "" if tabela else bloco
 
     return chunks

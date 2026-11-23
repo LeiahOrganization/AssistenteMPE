@@ -11,8 +11,10 @@ backend/.env
 # Indice vetorial e logs (gerados)
 backend/data/chroma/
 backend/data/logs/
+backend/data/eval/relatorio_retrieval.*
 
 # Documentos institucionais (nao versionar arquivos pesados/oficiais)
+/drive_base_conhecimento/
 backend/data/documentos/**
 !backend/data/documentos/**/
 !backend/data/documentos/faq/exemplo-faq-campus.md

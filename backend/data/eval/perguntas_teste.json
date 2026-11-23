@@ -1,0 +1,32 @@
+[
+  {
+    "pergunta": "Em que horário a secretaria acadêmica atende?",
+    "documento_esperado": "faq/exemplo-faq-campus.md",
+    "categoria_esperada": "faq",
+    "tem_resposta": true
+  },
+  {
+    "pergunta": "Como solicito uma segunda via do histórico escolar?",
+    "documento_esperado": "faq/exemplo-faq-campus.md",
+    "categoria_esperada": "faq",
+    "tem_resposta": true
+  },
+  {
+    "pergunta": "Qual é a frequência mínima nas aulas para aprovação?",
+    "documento_esperado": "faq/exemplo-faq-campus.md",
+    "categoria_esperada": "faq",
+    "tem_resposta": true
+  },
+  {
+    "pergunta": "Quantas vagas há no próximo edital de monitoria?",
+    "documento_esperado": null,
+    "categoria_esperada": null,
+    "tem_resposta": false
+  },
+  {
+    "pergunta": "Qual é a previsão do tempo para amanhã?",
+    "documento_esperado": null,
+    "categoria_esperada": null,
+    "tem_resposta": false
+  }
+]

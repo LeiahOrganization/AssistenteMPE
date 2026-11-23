@@ -60,6 +60,8 @@ class DocumentOut(BaseModel):
 
 class IngestReport(BaseModel):
     documentos_processados: int
+    documentos_inalterados: int = 0
+    documentos_removidos: int = 0
     chunks_indexados: int
     ignorados: list[str]
     erros: list[str]

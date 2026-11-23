@@ -1,0 +1,32 @@
+[
+  {
+    "pergunta": "Que endereço devo usar para ir presencialmente ao IFCE de Maranguape?",
+    "documento_esperado": "faq/guia_rapido_campus_maranguape.md",
+    "categoria_esperada": "faq",
+    "tem_resposta": true
+  },
+  {
+    "pergunta": "Com quem devo confirmar um pedido de histórico escolar que exige análise individual?",
+    "documento_esperado": "faq/guia_rapido_campus_maranguape.md",
+    "categoria_esperada": "faq",
+    "tem_resposta": true
+  },
+  {
+    "pergunta": "Os cursos oferecidos no IFCE Campus Maranguape cobram mensalidade?",
+    "documento_esperado": "cursos/campus-maranguape-ensino-d19e8f87543b7cb3.md",
+    "categoria_esperada": "cursos",
+    "tem_resposta": true
+  },
+  {
+    "pergunta": "Qual será a previsão de chuva para o centro de Maranguape amanhã?",
+    "documento_esperado": null,
+    "categoria_esperada": null,
+    "tem_resposta": false
+  },
+  {
+    "pergunta": "Em qual data abrem as inscrições de monitoria do campus para o primeiro semestre de 2028?",
+    "documento_esperado": null,
+    "categoria_esperada": null,
+    "tem_resposta": false
+  }
+]

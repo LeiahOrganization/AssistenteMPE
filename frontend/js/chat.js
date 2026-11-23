@@ -246,7 +246,7 @@ function adicionarMensagemBot() {
 
     falhar(mensagem) {
       bolha.innerHTML = `<p><strong>Não consegui responder agora.</strong></p><p>${escapar(mensagem)}</p>`;
-      rodape.innerHTML = `<span class="msg__meta">Verifique se o túnel do ngrok está ativo.</span>`;
+      rodape.innerHTML = `<span class="msg__meta">Confira o status do modelo ou tente novamente.</span>`;
     },
   };
 }

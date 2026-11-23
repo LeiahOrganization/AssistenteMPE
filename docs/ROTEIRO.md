@@ -22,9 +22,9 @@ Mapa entre as etapas do projeto (PT PIBIC AF Jr 2026) e o que já existe no repo
    (o nome do arquivo vira o título exibido na interface).
 3. Rodar `python -m scripts.ingest` e conferir na aba **Base de Conhecimento**
    se cada documento gerou uma quantidade razoável de trechos.
-4. **Atenção a PDFs digitalizados (imagem):** eles não têm texto extraível e serão
-   ignorados com o aviso "nenhum texto extraído". Nesse caso é preciso OCR
-   (ex.: `ocrmypdf`) antes da indexação.
+4. **Atenção a PDFs digitalizados (imagem):** o pipeline tenta OCR em páginas
+   com menos de 50 caracteres. Instale o idioma português do Tesseract e revise
+   os avisos de páginas sem texto. Tabelas de páginas escaneadas exigem inspeção.
 
 ### Etapa 2 — experimentos de recuperação
 Planilha sugerida (uma linha por configuração):
@@ -32,8 +32,9 @@ Planilha sugerida (uma linha por configuração):
 | # | embedding | chunk_size | overlap | top_k | acertos em 20 perguntas |
 |---|---|---|---|---|---|
 
-Basta alterar o `.env`, rodar `python -m scripts.ingest --reset` e repetir o conjunto
-de perguntas de teste.
+Use uma coleção separada por configuração e rode `python -m scripts.ingest`
+seguido de `python -m scripts.eval_retrieval`. Substitua as perguntas de exemplo
+por perguntas rotuladas contra os documentos oficiais.
 
 ### Etapa 3 — comparação entre LLMs (Meta 2)
 Cada modelo é uma combinação de `LLM_BASE_URL` + `LLM_MODEL` no `.env`:
@@ -95,7 +96,8 @@ do LLM** — uma boa frase de conclusão para o resumo expandido.
 
 ## Limitações conhecidas (importantes para o relatório)
 
-- **Sem OCR**: PDFs digitalizados não são indexados.
+- **OCR dependente dos dados do Tesseract**: páginas sem texto que o OCR não
+  conseguir ler não geram chunks; o loader registra um aviso por página.
 - **Coleta web sem JavaScript**: o coletor lê o HTML servido. Páginas cujo conteúdo é
   montado por JS no navegador podem vir incompletas — conferir sempre uma amostra do
   Markdown gerado antes de confiar nas respostas.

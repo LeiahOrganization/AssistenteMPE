@@ -59,9 +59,7 @@ def recuperar(pergunta: str, top_k: int | None = None, categoria: str | None = N
     top_k = top_k or settings.retrieval_top_k
     vetor = embeddings.embed_pergunta(pergunta)
     resultados = vectorstore.buscar(vetor, top_k=top_k, categoria=categoria)
-    filtrados = [r for r in resultados if r["score"] >= settings.retrieval_min_score]
-    # se o corte zerar tudo, devolve o melhor resultado para o LLM julgar
-    return filtrados or resultados[:1]
+    return [r for r in resultados if r["score"] >= settings.retrieval_min_score]
 
 
 def montar_mensagens(
@@ -103,7 +101,7 @@ def formatar_fontes(resultados: list[dict]) -> list[dict]:
                 "pagina": pagina if isinstance(pagina, int) and pagina > 0 else None,
                 "trecho": texto[:600] + ("..." if len(texto) > 600 else ""),
                 "score": item["score"],
-                "url": meta.get("url", ""),
+                "url": meta.get("url_origem") or meta.get("url", ""),
             }
         )
     return fontes
